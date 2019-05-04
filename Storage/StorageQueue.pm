@@ -47,7 +47,7 @@
 #    'AccountKey'  => $ENV{'STORAGE_ACCOUNT_KEY'},
 #);
 ###############################################################################
-# Subroutes expect an externally created REST::Client
+# Subroutes expect a externally created REST::Client
 ###############################################################################
 package Azure::StorageQueue;
 
@@ -58,6 +58,9 @@ use Time::Piece;
 use MIME::Base64;
 use XML::LibXML;
 use Data::Dumper;
+
+#Test_PutMessagesInQueue($client, "c Prueba", 10);
+#Test_GetMessagesInQueue($client, 10, 10);
 
 sub Test_PutMessagesInQueue {
     my $storageAccountRef = shift;
@@ -134,7 +137,6 @@ sub Get_AzureStorageQueueMessages {
     my $client = shift;
     my $numofmessages = shift // 1;
     my $peekonly = shift // 0;
-    my $base64encoded = shift // 1;
     my $dom;
     my $queueMessage;
     my %message = (
@@ -161,20 +163,14 @@ sub Get_AzureStorageQueueMessages {
             $message{'ExpirationTime'}=$queueMessage->findvalue('./ExpirationTime');
             $message{'TimeNextVisible'}=$queueMessage->findvalue('./TimeNextVisible');
             $message{'DequeueCount'}=$queueMessage->findvalue('./DequeueCount');
-            if ($base64encoded) {
-                $message{'MessageText'}=decode_base64($queueMessage->findvalue('./MessageText'));
-            } else {
-                $message{'MessageText'}=$queueMessage->findvalue('./MessageText');
-            }
+            $message{'MessageText'}=decode_base64($queueMessage->findvalue('./MessageText'));
             $message{'MessageId'}=$queueMessage->findvalue('./MessageId');
             $message{'InsertionTime'}=$queueMessage->findvalue('./InsertionTime');
             $message{'PopReceipt'}=$queueMessage->findvalue('./PopReceipt');
             push (@messagesArray, \%message);
         }
-        return @messagesArray;
-    } else {
-        return -1;
     }
+    return @messagesArray;
 }
 
 sub Clear_AzureStorageQueueMessages {
